@@ -40,16 +40,13 @@ function NNlib.depthwiseconv(x::AbstractArray{<:SBitstream, 4},
     N = NNlib.channels_in(cdims)
     K = NNlib.channel_multiplier(cdims)
     M = prod(NNlib.output_size(cdims))
-
     x_col = im2col(x, cdims)
     xgemm = reshape(x_col, M, :, N)
     wgemm = reshape(w, :, K, N)
-
-    ygemm = similar(x, M, K, N)
-    for c_in in 1:NNlib.channels_in(cdims)
-        ygemm[:, :, c_in] = xgemm[:, :, c_in] * wgemm[:, :, c_in]
-    end
+    ygemms = map(*, eachslice(xgemm, dims=3), eachslice(wgemm, dims=3))
+    ygemm = cat(ygemms...; dims = 3)
     y = reshape(ygemm, NNlib.output_size(cdims)..., N*K, size(x, 4))
-
     return y
 end
+
+
