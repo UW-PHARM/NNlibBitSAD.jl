@@ -1,9 +1,10 @@
-for f in (:output_size, :channels_in, :channels_out)
+for f in (:output_size, :channels_in, :channels_out, :channel_multiplier)
     @eval begin
         BitSAD.is_trace_primitive(::Type{<:Tuple{typeof(NNlib.$f), C}}) where C = true
         BitSAD.getsimulator(::typeof(NNlib.$f), cdims) = NNlib.$f
     end
 end
+
 
 function im2col(x, cdims)
     cdims_expanded = NNlib.insert_singleton_spatial_dimension(cdims)
@@ -29,6 +30,26 @@ function NNlib.conv(x::AbstractArray{<:SBitstream, 4},
     wgemm = reshape(w, :, size(w, 4))
     ygemm = xgemm * wgemm
     y = reshape(ygemm, NNlib.output_size(cdims)..., NNlib.channels_out(cdims), size(x, 4))
+
+    return y
+end
+
+function NNlib.depthwiseconv(x::AbstractArray{<:SBitstream, 4},
+                             w::AbstractArray{<:SBitstream, 4},
+                             cdims::ConvDims)
+    N = NNlib.channels_in(cdims)
+    K = NNlib.channel_multiplier(cdims)
+    M = prod(NNlib.output_size(cdims))
+
+    x_col = im2col(x, cdims)
+    xgemm = reshape(x_col, M, :, N)
+    wgemm = reshape(w, :, K, N)
+
+    ygemm = similar(x, M, K, N)
+    for c_in in 1:NNlib.channels_in(cdims)
+        ygemm[:, :, c_in] = xgemm[:, :, c_in] * wgemm[:, :, c_in]
+    end
+    y = reshape(ygemm, NNlib.output_size(cdims)..., N*K, size(x, 4))
 
     return y
 end
