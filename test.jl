@@ -4,12 +4,17 @@ using NNlibBitSAD
 using Statistics: mean
 using Flux
 using Functors
+using Ghost
 
 ##
 
-x = SBitstream.(rand(32, 32, 3, 1) / 10)
+x = SBitstream.(rand(12, 12, 3, 1) / 10)
 w = SBitstream.(rand(3, 3, 3, 16) / 10)
-cdims = DenseConvDims(x, w)
+cdims = DenseConvDims(x, w; padding = 2, stride = 1)
+
+##
+
+NNlibBitSAD.im2col(x, cdims)
 
 ##
 
@@ -33,3 +38,21 @@ csize = Flux.outputsize(clayer, size(x))[1:(end - 1)]
 nn = Chain(clayer, flatten, Dense(prod(csize), 10))
 nn = fmap(x -> SBitstream.(x), nn; exclude = x -> x isa AbstractArray)
 BitSAD.show_simulatable(nn, x)
+
+##
+
+tape = BitSAD.trace(nn, x; isprimitive = BitSAD.is_hardware_primitive)
+BitSAD.transform!(BitSAD._unbroadcast, tape)
+BitSAD.transform!(BitSAD._squash_binary_vararg, tape)
+tape = Ghost.Tape(tape.ops, tape.result, tape.parent, tape.meta, BitSAD.TupleCtx())
+BitSAD.transform!(BitSAD._record_tuples_and_splats, tape)
+BitSAD.transform!(BitSAD._reroute_tuple_index, tape)
+BitSAD.transform!(BitSAD._desplat, tape)
+
+# extract tape into module
+m = BitSAD.Module(fn = nn, name = :top)
+BitSAD.extracttrace!(m, tape)
+
+##
+
+verilog_str, m = generatehw(nn, x);

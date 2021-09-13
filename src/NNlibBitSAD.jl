@@ -1,6 +1,7 @@
 module NNlibBitSAD
 
 using BitSAD
+using BitSAD: SBitstreamLike, Net, Netlist
 using NNlib
 
 include("utils.jl")

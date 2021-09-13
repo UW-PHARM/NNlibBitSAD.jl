@@ -7,7 +7,8 @@ function NNlib.conv(x::AbstractArray{<:SBitstream, 4},
     xgemm = im2col(x, cdims)
     wgemm = reshape(w, :, size(w, 4))
     ygemm = xgemm * wgemm
-    y = reshape(ygemm, NNlib.output_size(cdims)..., NNlib.channels_out(cdims), size(x, 4))
+    osize = NNlib.output_size(cdims)
+    y = reshape(ygemm, osize[1], osize[2], NNlib.channels_out(cdims), size(x, 4))
 
     return y
 end
