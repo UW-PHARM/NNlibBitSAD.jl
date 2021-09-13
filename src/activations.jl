@@ -25,9 +25,10 @@ function (handler::ReluHandler)(netlist::Netlist, inputs::Netlist, outputs::Netl
     outstring = """
         $(BitSAD.stdcomment)
         // BEGIN relu$(handler.id)
-        integer relu$(handler.id)_i;
+        genvar relu$(handler.id)_i;
 
-        for (relu$(handler.id)_i = 0; i < $num_elements; i = i + 1) begin
+        generate
+        for (relu$(handler.id)_i = 0; i < $num_elements; i = i + 1) begin: i
             relu relu$(handler.id) (
                     .CLK(CLK),
                     .nRST(nRST),
@@ -37,6 +38,7 @@ function (handler::ReluHandler)(netlist::Netlist, inputs::Netlist, outputs::Netl
                     .out_m($(BitSAD.name(outputs[1]))_m[relu$(handler.id)_i])
                 );
         end
+        endgenerate
         // END relu$(handler.id)
         \n"""
 
