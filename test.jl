@@ -10,7 +10,7 @@ using Ghost
 
 x = SBitstream.(rand(12, 12, 3, 1) / 10)
 w = SBitstream.(rand(3, 3, 3, 16) / 10)
-cdims = DenseConvDims(x, w; padding = 2, stride = 1)
+cdims = DenseConvDims(x, w)
 
 ##
 
@@ -35,7 +35,7 @@ mean(abs.(estimate.(y) .- yfloat)) / maximum(yfloat)
 
 clayer = Conv((3, 3), 3 => 16, relu)
 csize = Flux.outputsize(clayer, size(x))[1:(end - 1)]
-nn = Chain(clayer, flatten, Dense(prod(csize), 10))
+nn = clayer
 nn = fmap(x -> SBitstream.(x), nn; exclude = x -> x isa AbstractArray)
 BitSAD.show_simulatable(nn, x)
 
@@ -55,4 +55,4 @@ BitSAD.extracttrace!(m, tape)
 
 ##
 
-verilog_str, m = generatehw(nn, x);
+verilog_str, m = generatehw((c, x) -> c(x), nn, x);

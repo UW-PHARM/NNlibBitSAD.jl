@@ -28,9 +28,7 @@ uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
 [[BitSAD]]
 deps = ["DataStructures", "Ghost", "LightGraphs", "LinearAlgebra", "MacroTools", "MetaGraphs", "Random", "Setfield", "Statistics"]
-git-tree-sha1 = "94c13796beef4351e5407ed3cea77b919173b5a5"
-repo-rev = "master"
-repo-url = "https://github.com/UW-PHARM/BitSAD.jl"
+path = "/Users/darsnack/.julia/dev/BitSAD"
 uuid = "7f90e340-ca22-4a3e-a259-118ed254aff3"
 version = "0.1.0"
 

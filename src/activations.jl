@@ -15,20 +15,20 @@ end
 
 BitSAD.gethandler(::Bool, ::Type{typeof(NNlib.relu)}, ::Type{<:SBitstreamLike}) = ReluHandler()
 
-function (handler::ReluHandler)(netlist::Netlist, inputs::Netlist, outputs::Netlist)
+function (handler::ReluHandler)(buffer, netlist, inputs, outputs)
     # set input/output at as signed
     BitSAD.setsigned!(netlist, inputs[1], true)
     BitSAD.setsigned!(netlist, outputs[1], true)
 
     num_elements = prod(BitSAD.netsize(inputs[1]))
 
-    outstring = """
+    write(buffer, """
         $(BitSAD.stdcomment)
         // BEGIN relu$(handler.id)
         genvar relu$(handler.id)_i;
 
         generate
-        for (relu$(handler.id)_i = 0; i < $num_elements; i = i + 1) begin: i
+        for (relu$(handler.id)_i = 0; relu$(handler.id)_i < $num_elements; relu$(handler.id)_i = relu$(handler.id)_i + 1) begin
             relu relu$(handler.id) (
                     .CLK(CLK),
                     .nRST(nRST),
@@ -40,9 +40,9 @@ function (handler::ReluHandler)(netlist::Netlist, inputs::Netlist, outputs::Netl
         end
         endgenerate
         // END relu$(handler.id)
-        \n"""
+        \n""")
 
     handler.id += 1
 
-    return outstring
+    return buffer
 end
