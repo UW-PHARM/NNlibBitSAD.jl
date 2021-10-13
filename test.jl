@@ -41,13 +41,13 @@ BitSAD.show_simulatable(nn, x)
 
 ##
 
-tape = BitSAD.trace(nn, x; isprimitive = BitSAD.is_hardware_primitive)
-BitSAD.transform!(BitSAD._unbroadcast, tape)
-BitSAD.transform!(BitSAD._squash_binary_vararg, tape)
-tape = Ghost.Tape(tape.ops, tape.result, tape.parent, tape.meta, BitSAD.TupleCtx())
-BitSAD.transform!(BitSAD._record_tuples_and_splats, tape)
-BitSAD.transform!(BitSAD._reroute_tuple_index, tape)
-BitSAD.transform!(BitSAD._desplat, tape)
+# tape = BitSAD.trace(nn, x; isprimitive = BitSAD.is_hardware_primitive)
+# BitSAD.transform!(BitSAD._unbroadcast, tape)
+# BitSAD.transform!(BitSAD._squash_binary_vararg, tape)
+# tape = Ghost.Tape(tape.ops, tape.result, tape.parent, tape.meta, BitSAD.TupleCtx())
+# BitSAD.transform!(BitSAD._record_tuples_and_splats, tape)
+# BitSAD.transform!(BitSAD._reroute_tuple_index, tape)
+# BitSAD.transform!(BitSAD._desplat, tape)
 
 # extract tape into module
 m = BitSAD.Module(fn = nn, name = :top)
@@ -55,4 +55,5 @@ BitSAD.extracttrace!(m, tape)
 
 ##
 
-verilog_str, m = generatehw((c, x) -> c(x), nn, x);
+outfile = open("top.v", "w")
+_, m = generatehw(outfile, (c, x) -> c(x), nn, x);

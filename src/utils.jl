@@ -29,7 +29,7 @@ end
 BitSAD.gethandler(::Type{typeof(im2col)}, ::Type{<:AbstractArray{<:SBitstream}}, ::Type{<:ConvDims}) =
     Im2ColHandler()
 
-function (handler::Im2ColHandler)(netlist::Netlist, inputs::Netlist, outputs::Netlist)
+function (handler::Im2ColHandler)(buffer, netlist, inputs, outputs)
     # set input/output at as signed and delete cdims from netlist
     BitSAD.setsigned!(netlist, inputs[1], true)
     BitSAD.setsigned!(netlist, outputs[1], true)
@@ -43,7 +43,7 @@ function (handler::Im2ColHandler)(netlist::Netlist, inputs::Netlist, outputs::Ne
     STRIDE_H, STRIDE_W = NNlib.stride(cdims)
     KERNEL_H, KERNEL_W = NNlib.kernel_size(cdims)
 
-    outstring = """
+    write(buffer, """
         $(BitSAD.stdcomment)
         // BEGIN im2col$(handler.id)
         im2col #(
@@ -65,9 +65,9 @@ function (handler::Im2ColHandler)(netlist::Netlist, inputs::Netlist, outputs::Ne
                 .col_m($(BitSAD.name(outputs[1]))_m)
             );
         // END im2col$(handler.id)
-        \n"""
+        \n""")
 
     handler.id += 1
 
-    return outstring
+    return buffer
 end
