@@ -20,7 +20,7 @@ function (handler::ReluHandler)(buffer, netlist, inputs, outputs)
     BitSAD.setsigned!(netlist, inputs[1], true)
     BitSAD.setsigned!(netlist, outputs[1], true)
 
-    num_elements = prod(BitSAD.netsize(inputs[1]))
+    num_elements = join(BitSAD.netsize(inputs[1]), "*")
 
     write(buffer, """
         $(BitSAD.stdcomment)
