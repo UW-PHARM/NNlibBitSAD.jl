@@ -51,16 +51,33 @@ mean(abs.(estimate.(y) .- yfloat)) / maximum(yfloat)
 
 ##
 
-clayers = [Conv((3, 3), 3 => 16, relu),
-           Conv((3, 3), 16 => 64, relu),
-           Conv((3, 3), 64 => 128, relu)]
-csize = prod(Flux.outputsize(clayers, size(x)))
-nn = clayers[1]
-# nn = Chain(clayers..., Flux.flatten, Dense(csize, 10))
+scale = ntuple(i -> 2, ndims(x) - 2)
+yfloat = upsample_nearest(float.(x), scale)
+y = upsample_nearest(x, scale)
+mean(abs.(float.(y) .- yfloat))
 
 ##
 
-nn = fmap(x -> SBitstream.(x), nn; exclude = x -> x isa AbstractArray)
+sim = simulatable(upsample_nearest, x, scale)
+for t in 1:100
+    ybit = pop!.(sim(upsample_nearest, x, scale))
+    push!.(y, ybit)
+end
+mean(abs.(estimate.(y) .- yfloat)) / maximum(yfloat)
+
+##
+
+clayers = [Conv((3, 3), 3 => 16, relu),
+           Conv((3, 3), 16 => 64, relu),
+           Conv((3, 3), 64 => 128, relu),
+           Upsample(2)]
+csize = prod(Flux.outputsize(clayers, size(x)))
+# nn = clayers[1]
+nn = Chain(clayers..., Flux.flatten, Dense(csize, 10))
+
+##
+
+nn = nn |> tosbitstream
 BitSAD.show_simulatable(nn, x)
 
 ##
@@ -80,5 +97,5 @@ BitSAD.extracttrace!(m, tape)
 ##
 
 outfile = open("top.v", "w")
-_, m = generatehw(outfile, nn, x);
+_, m = generatehw(outfile, nn, x; top = :top)
 close(outfile)
