@@ -8,6 +8,17 @@ end
 BitSAD.@nosim NNlib.DenseConvDims(x::AbstractArray{<:SBitstream}, w::AbstractArray{<:SBitstream}) kwargs=true
 BitSAD.@nosim NNlib.DenseConvDims(cdims::ConvDims)
 
+# prevent aliasing with im2col! and SBitstream
+function NNlib.im2col!(col::AbstractArray{SBitstream{T}, 2},
+                       x::AbstractArray{SBitstream{T}, 4},
+                       cdims::ConvDims) where T
+    colfloat = similar(col, T, size(col)...)
+    NNlib.im2col!(colfloat, float.(x), cdims)
+    col .= SBitstream.(colfloat)
+
+    return col
+end
+
 function im2col(x, cdims)
     cdims_expanded = NNlib.insert_singleton_spatial_dimension(cdims)
     x_expanded = NNlib.insert_singleton_spatial_dimension(x)
