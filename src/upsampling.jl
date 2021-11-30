@@ -4,12 +4,14 @@ BitSAD.is_trace_primitive(::Type{typeof(NNlib.upsample_nearest)},
 BitSAD.getsimulator(::typeof(NNlib.upsample_nearest), x, scale) = NNlib.upsample_nearest
 
 Base.@kwdef mutable struct UpsampleNearestHandler
-    id = 0
+    id::Int = 0
 end
 
-BitSAD.gethandler(::Type{typeof(NNlib.upsample_nearest)},
+BitSAD.gethandler(broadcasted,
+                  ::Type{typeof(NNlib.upsample_nearest)},
                   ::Type{<:AbstractArray{<:SBitstream}},
-                  ::Type{<:NTuple{<:Any, <:Integer}}) = UpsampleNearestHandler()
+                  ::Type{<:NTuple{<:Any, <:Integer}}) =
+    !broadcasted ? UpsampleNearestHandler() : error("Cannot generate hardware for broadcasted upsample_nearest.")
 
 function (handler::UpsampleNearestHandler)(buffer, netlist, inputs, outputs)
     # set input/output at as signed and delete cdims from netlist

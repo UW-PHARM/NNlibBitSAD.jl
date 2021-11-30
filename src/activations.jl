@@ -10,10 +10,12 @@ BitSAD.is_trace_primitive(::Type{typeof(Base.broadcasted)},
 BitSAD.getsimulator(::typeof(NNlib.relu), ::SBitstream) = SReluer()
 
 Base.@kwdef mutable struct ReluHandler
-    id = 0
+    id::Int = 0
+    broadcasted::Bool
 end
 
-BitSAD.gethandler(::Bool, ::Type{typeof(NNlib.relu)}, ::Type{<:SBitstreamLike}) = ReluHandler()
+BitSAD.gethandler(broadcasted, ::Type{typeof(NNlib.relu)}, ::Type{<:SBitstreamLike}) =
+    ReluHandler(broadcasted = broadcasted)
 
 function (handler::ReluHandler)(buffer, netlist, inputs, outputs)
     # set input/output at as signed
@@ -22,24 +24,25 @@ function (handler::ReluHandler)(buffer, netlist, inputs, outputs)
 
     num_elements = join(BitSAD.netsize(inputs[1]), "*")
 
+    broadcast = handler.broadcasted ? "_bcast" : ""
     write(buffer, """
         $(BitSAD.stdcomment)
-        // BEGIN relu$(handler.id)
-        genvar relu$(handler.id)_i;
+        // BEGIN relu$(broadcast)$(handler.id)
+        genvar relu$(broadcast)$(handler.id)_i;
 
         generate
-        for (relu$(handler.id)_i = 0; relu$(handler.id)_i < $num_elements; relu$(handler.id)_i = relu$(handler.id)_i + 1) begin
-            relu relu$(handler.id) (
+        for (relu$(broadcast)$(handler.id)_i = 0; relu$(broadcast)$(handler.id)_i < $num_elements; relu$(broadcast)$(handler.id)_i = relu$(broadcast)$(handler.id)_i + 1) begin
+            relu relu$(broadcast)$(handler.id) (
                     .CLK(CLK),
                     .nRST(nRST),
-                    .in_p($(BitSAD.name(inputs[1]))_p[relu$(handler.id)_i]),
-                    .in_m($(BitSAD.name(inputs[1]))_m[relu$(handler.id)_i]),
-                    .out_p($(BitSAD.name(outputs[1]))_p[relu$(handler.id)_i]),
-                    .out_m($(BitSAD.name(outputs[1]))_m[relu$(handler.id)_i])
+                    .in_p($(BitSAD.name(inputs[1]))_p[relu$(broadcast)$(handler.id)_i]),
+                    .in_m($(BitSAD.name(inputs[1]))_m[relu$(broadcast)$(handler.id)_i]),
+                    .out_p($(BitSAD.name(outputs[1]))_p[relu$(broadcast)$(handler.id)_i]),
+                    .out_m($(BitSAD.name(outputs[1]))_m[relu$(broadcast)$(handler.id)_i])
                 );
         end
         endgenerate
-        // END relu$(handler.id)
+        // END relu$(broadcast)$(handler.id)
         \n""")
 
     handler.id += 1

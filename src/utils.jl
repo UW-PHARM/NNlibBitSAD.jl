@@ -34,11 +34,11 @@ BitSAD.is_trace_primitive(::Type{typeof(im2col)},
 BitSAD.getsimulator(::typeof(im2col), x, cdims) = im2col
 
 Base.@kwdef mutable struct Im2ColHandler
-    id = 0
+    id::Int = 0
 end
 
-BitSAD.gethandler(::Type{typeof(im2col)}, ::Type{<:AbstractArray{<:SBitstream}}, ::Type{<:ConvDims}) =
-    Im2ColHandler()
+BitSAD.gethandler(broadcasted, ::Type{typeof(im2col)}, ::Type{<:AbstractArray{<:SBitstream}}, ::Type{<:ConvDims}) =
+    broadcasted ? error("Cannot generate hardware for broadcasted im2col.") : Im2ColHandler()
 
 function (handler::Im2ColHandler)(buffer, netlist, inputs, outputs)
     # set input/output at as signed and delete cdims from netlist
