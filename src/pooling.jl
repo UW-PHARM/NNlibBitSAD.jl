@@ -49,17 +49,17 @@ BitSAD.is_trace_primitive(::Type{typeof(NNlib.maxpool)},
                           ::Type{<:NNlib.PoolDims}) = true
 BitSAD.getsimulator(::typeof(NNlib.maxpool), x::AbstractArray{<:SBitstream}, pdims::NNlib.PoolDims) =
     MaxPooler(x, pdims)
+
+struct SMaxPoolHandler end
+
 BitSAD.gethandler(broadcasted,
                   ::Type{typeof(NNlib.maxpool)},
                   ::Type{<:AbstractArray{<:SBitstream}},
                   ::Type{<:NNlib.PoolDims}) =
-    broadcasted ? error("Cannot generate hardware for broadcasted maxpool.") : MaxPoolHandler()
+    broadcasted ? error("Cannot generate hardware for broadcasted maxpool.") : SMaxPoolHandler()
+BitSAD.init_state(::SMaxPoolHandler) = (id = 0,)
 
-Base.@kwdef mutable struct MaxPoolHandler
-    id::Int = 0
-end
-
-function (handler::MaxPoolHandler)(buffer, netlist, inputs, outputs)
+function (handler::SMaxPoolHandler)(buffer, netlist, state, inputs, outputs)
     # set input/output at as signed and delete pdims from netlist
     BitSAD.setsigned!(netlist, inputs[1], true)
     BitSAD.setsigned!(netlist, outputs[1], true)
@@ -75,7 +75,7 @@ function (handler::MaxPoolHandler)(buffer, netlist, inputs, outputs)
 
     write(buffer, """
         $(BitSAD.stdcomment)
-        // BEGIN maxpool$(handler.id)
+        // BEGIN maxpool$(state.id)
         stoch_signed_maxpool #(
                 .IM_HEIGHT($IM_H),
                 .IM_WIDTH($IM_W),
@@ -86,7 +86,7 @@ function (handler::MaxPoolHandler)(buffer, netlist, inputs, outputs)
                 .PAD_W($PAD_W),
                 .STRIDE_H($STRIDE_H),
                 .STRIDE_W($STRIDE_W)
-            ) maxpool$(handler.id) (
+            ) maxpool$(state.id) (
                 .CLK(CLK),
                 .nRST(nRST),
                 .x_p($(BitSAD.name(inputs[1]))_p),
@@ -94,10 +94,8 @@ function (handler::MaxPoolHandler)(buffer, netlist, inputs, outputs)
                 .y_p($(BitSAD.name(outputs[1]))_p),
                 .y_m($(BitSAD.name(outputs[1]))_m)
             );
-        // END maxpool$(handler.id)
+        // END maxpool$(state.id)
         \n""")
 
-    handler.id += 1
-
-    return buffer
+    return buffer, (id = state.id + 1,)
 end

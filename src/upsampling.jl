@@ -3,17 +3,16 @@ BitSAD.is_trace_primitive(::Type{typeof(NNlib.upsample_nearest)},
                           ::Type{<:Any}) = true
 BitSAD.getsimulator(::typeof(NNlib.upsample_nearest), x, scale) = NNlib.upsample_nearest
 
-Base.@kwdef mutable struct UpsampleNearestHandler
-    id::Int = 0
-end
+struct SUpsampleNearestHandler end
 
 BitSAD.gethandler(broadcasted,
                   ::Type{typeof(NNlib.upsample_nearest)},
                   ::Type{<:AbstractArray{<:SBitstream}},
                   ::Type{<:NTuple{<:Any, <:Integer}}) =
-    !broadcasted ? UpsampleNearestHandler() : error("Cannot generate hardware for broadcasted upsample_nearest.")
+    !broadcasted ? SUpsampleNearestHandler() : error("Cannot generate hardware for broadcasted upsample_nearest.")
+BitSAD.init_state(::SUpsampleNearestHandler) = (id = 0,)
 
-function (handler::UpsampleNearestHandler)(buffer, netlist, inputs, outputs)
+function (handler::SUpsampleNearestHandler)(buffer, netlist, state, inputs, outputs)
     # set input/output at as signed and delete cdims from netlist
     BitSAD.setsigned!(netlist, inputs[1], true)
     BitSAD.setsigned!(netlist, outputs[1], true)
@@ -32,7 +31,7 @@ function (handler::UpsampleNearestHandler)(buffer, netlist, inputs, outputs)
 
     # loop from outer most dimension inward
     # divide output index by scale to get matched input index
-    write(buffer, "// BEGIN upsample_nearest$(handler.id)\n")
+    write(buffer, "// BEGIN upsample_nearest$(state.id)\n")
     write(buffer, "genvar ")
     write(buffer, join(ntuple(i -> "upsample_nearest_idx_$i", length(sizes)), ", "))
     write(buffer, ";\ngenerate\n")
@@ -62,9 +61,7 @@ function (handler::UpsampleNearestHandler)(buffer, netlist, inputs, outputs)
         padding = repeat(" ", (i - 1) * 4)
         write(buffer, "$(padding)end\n")
     end
-    write(buffer, "endgenerate\n//END upsample_nearest$(handler.id)\n\n")
+    write(buffer, "endgenerate\n//END upsample_nearest$(state.id)\n\n")
 
-    handler.id += 1
-
-    return buffer
+    return buffer, (id = state.id + 1,)
 end

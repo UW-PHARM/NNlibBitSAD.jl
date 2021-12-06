@@ -34,14 +34,13 @@ BitSAD.is_trace_primitive(::Type{typeof(im2col)},
                           ::Type{<:ConvDims}) = true
 BitSAD.getsimulator(::typeof(im2col), x, cdims) = im2col
 
-Base.@kwdef mutable struct Im2ColHandler
-    id::Int = 0
-end
+struct SIm2ColHandler end
 
 BitSAD.gethandler(broadcasted, ::Type{typeof(im2col)}, ::Type{<:AbstractArray{<:SBitstream}}, ::Type{<:ConvDims}) =
-    broadcasted ? error("Cannot generate hardware for broadcasted im2col.") : Im2ColHandler()
+    broadcasted ? error("Cannot generate hardware for broadcasted im2col.") : SIm2ColHandler()
+BitSAD.init_state(::SIm2ColHandler) = (id = 0,)
 
-function (handler::Im2ColHandler)(buffer, netlist, inputs, outputs)
+function (handler::SIm2ColHandler)(buffer, netlist, state, inputs, outputs)
     # set input/output at as signed and delete cdims from netlist
     BitSAD.setsigned!(netlist, inputs[1], true)
     BitSAD.setsigned!(netlist, outputs[1], true)
@@ -57,7 +56,7 @@ function (handler::Im2ColHandler)(buffer, netlist, inputs, outputs)
 
     write(buffer, """
         $(BitSAD.stdcomment)
-        // BEGIN im2col$(handler.id)
+        // BEGIN im2col$(state.id)
         stoch_signed_im2col #(
                 .IM_HEIGHT($IM_H),
                 .IM_WIDTH($IM_W),
@@ -68,7 +67,7 @@ function (handler::Im2ColHandler)(buffer, netlist, inputs, outputs)
                 .PAD_W($PAD_W),
                 .STRIDE_H($STRIDE_H),
                 .STRIDE_W($STRIDE_W)
-            ) im2col$(handler.id) (
+            ) im2col$(state.id) (
                 .CLK(CLK),
                 .nRST(nRST),
                 .im_p($(BitSAD.name(inputs[1]))_p),
@@ -76,10 +75,8 @@ function (handler::Im2ColHandler)(buffer, netlist, inputs, outputs)
                 .col_p($(BitSAD.name(outputs[1]))_p),
                 .col_m($(BitSAD.name(outputs[1]))_m)
             );
-        // END im2col$(handler.id)
+        // END im2col$(state.id)
         \n""")
 
-    handler.id += 1
-
-    return buffer
+    return buffer, (id = state.id + 1,)
 end

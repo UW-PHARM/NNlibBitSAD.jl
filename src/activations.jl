@@ -9,43 +9,34 @@ BitSAD.is_trace_primitive(::Type{typeof(Base.broadcasted)},
                           ::Type{<:SBitstreamLike}) = true
 BitSAD.getsimulator(::typeof(NNlib.relu), ::SBitstream) = SReluer()
 
-Base.@kwdef mutable struct ReluHandler
-    id::Int = 0
-    broadcasted::Bool
-end
+struct SReluHandler end
 
-BitSAD.gethandler(broadcasted, ::Type{typeof(NNlib.relu)}, ::Type{<:SBitstreamLike}) =
-    ReluHandler(broadcasted = broadcasted)
+BitSAD.gethandler(::Bool, ::Type{typeof(NNlib.relu)}, ::Type{<:SBitstreamLike}) = SReluHandler()
+BitSAD.init_state(::SReluHandler) = (id = 0,)
 
-function (handler::ReluHandler)(buffer, netlist, inputs, outputs)
+function (handler::SReluHandler)(buffer, netlist, state, inputs, outputs)
     # set input/output at as signed
     BitSAD.setsigned!(netlist, inputs[1], true)
     BitSAD.setsigned!(netlist, outputs[1], true)
 
     num_elements = join(BitSAD.netsize(inputs[1]), "*")
 
-    broadcast = handler.broadcasted ? "_bcast" : ""
     write(buffer, """
         $(BitSAD.stdcomment)
-        // BEGIN relu$(broadcast)$(handler.id)
-        genvar relu$(broadcast)$(handler.id)_i;
-
-        generate
-        for (relu$(broadcast)$(handler.id)_i = 0; relu$(broadcast)$(handler.id)_i < $num_elements; relu$(broadcast)$(handler.id)_i = relu$(broadcast)$(handler.id)_i + 1) begin : relu$(broadcast)$(handler.id)_gen
-            stoch_signed_relu relu$(broadcast)$(handler.id) (
-                    .CLK(CLK),
-                    .nRST(nRST),
-                    .in_p($(BitSAD.name(inputs[1]))_p[relu$(broadcast)$(handler.id)_i]),
-                    .in_m($(BitSAD.name(inputs[1]))_m[relu$(broadcast)$(handler.id)_i]),
-                    .out_p($(BitSAD.name(outputs[1]))_p[relu$(broadcast)$(handler.id)_i]),
-                    .out_m($(BitSAD.name(outputs[1]))_m[relu$(broadcast)$(handler.id)_i])
-                );
-        end
-        endgenerate
-        // END relu$(broadcast)$(handler.id)
+        // BEGIN relu$(state.id)
+        """)
+    BitSAD.write_bcast_instantiation(buffer, "relu$(state.id)", BitSAD.netsize(outputs[1]), """
+        stoch_signed_relu relu$(state.id) (
+                .CLK(CLK),
+                .nRST(nRST),
+                .in_p($(BitSAD.name(inputs[1]))_p[relu$(state.id)_i]),
+                .in_m($(BitSAD.name(inputs[1]))_m[relu$(state.id)_i]),
+                .out_p($(BitSAD.name(outputs[1]))_p[relu$(state.id)_i]),
+                .out_m($(BitSAD.name(outputs[1]))_m[relu$(state.id)_i])
+            );""")
+    write(buffer, """
+        // END relu$(state.id)
         \n""")
 
-    handler.id += 1
-
-    return buffer
+    return buffer, (id = state.id + 1,)
 end
