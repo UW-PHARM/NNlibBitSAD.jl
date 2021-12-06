@@ -4,6 +4,7 @@ using BitSAD
 using BitSAD: @nosim, SBitstreamLike, Net, Netlist
 using NNlib
 using Functors: fmap
+using Artifacts, LazyArtifacts
 
 export tosbitstream
 
