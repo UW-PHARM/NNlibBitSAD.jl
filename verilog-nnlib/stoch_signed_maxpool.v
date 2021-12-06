@@ -5,7 +5,7 @@ module stoch_signed_maxpool(CLK, nRST, x_p, x_m, y_p, y_m);
 // parameters
 parameter IM_HEIGHT = 12;
 parameter IM_WIDTH = 12;
-parameter CHANNELS = 256;
+parameter CHANNELS = 3;
 parameter KERNEL_H = 3;
 parameter KERNEL_W = 3;
 parameter PAD_H = 2;
@@ -15,12 +15,13 @@ parameter STRIDE_W = 1;
 
 localparam IM_PAD_W = IM_WIDTH + PAD_W * 2;
 localparam IM_PAD_H = IM_HEIGHT + PAD_H * 2;
-localparam OUT_HEIGHT = $ceil((IM_PAD_H - KERNEL_H) / STRIDE_H + 1);
-localparam OUT_WIDTH = $ceil((IM_PAD_W - KERNEL_W) / STRIDE_W + 1);
+// take ceil https://stackoverflow.com/questions/52372409/using-ceil-to-define-a-parameter-in-systemverilog-in-quartus-prime
+localparam OUT_HEIGHT = ((IM_PAD_H - KERNEL_H + STRIDE_H - 1) / STRIDE_H + 1);
+localparam OUT_WIDTH = ((IM_PAD_W - KERNEL_W + STRIDE_W - 1) / STRIDE_W + 1);
 
 input CLK, nRST;
-input [(IM_WIDTH * IM_HEIGHT - 1):0] x_p, x_m;
-output [(OUT_HEIGHT * OUT_WIDTH - 1):0] y_p, y_m;
+input [(IM_WIDTH * IM_HEIGHT * CHANNELS - 1):0] x_p, x_m;
+output [(OUT_HEIGHT * OUT_WIDTH * CHANNELS - 1):0] y_p, y_m;
 
 wire [(OUT_WIDTH * OUT_HEIGHT * CHANNELS * KERNEL_W * KERNEL_H - 1):0] x_patch_p, x_patch_m;
 
@@ -37,11 +38,11 @@ generate
                 for (k_width = 0; k_width < KERNEL_W; k_width = k_width + 1) begin : pad_k_width_gen
                     for (k_height = 0; k_height < KERNEL_H; k_height = k_height + 1) begin : pad_k_height_gen
                         localparam out_idx = base + k_width * KERNEL_H + k_height;
-                        localparam in_idx = (im_channels * IM_HEIGHT * IM_WIDTH) *
-                                            (im_width * IM_HEIGHT) + im_height;
+                        localparam in_idx = (im_channels * IM_HEIGHT * IM_WIDTH) +
+                                            ((im_width + k_width) * IM_HEIGHT) + im_height + k_height;
 
-                        if ((im_width >= 0) && (im_width < IM_WIDTH) &&
-                           (im_height >= 0) && (im_height < IM_HEIGHT)) begin
+                        if ((im_width + k_width >= 0) && (im_width + k_width < IM_WIDTH) &&
+                           (im_height + k_height >= 0) && (im_height + k_height < IM_HEIGHT)) begin
                             assign x_patch_p[out_idx] = x_p[in_idx];
                             assign x_patch_m[out_idx] = x_m[in_idx];
                         end
@@ -59,8 +60,8 @@ endgenerate
 genvar height, width, channels;
 generate
     for (channels = 0; channels < CHANNELS; channels = channels + 1) begin : channel_gen
-        for (width = 0; width < OUT_WIDTH; width = width + STRIDE_W) begin : width_gen
-            for (height = 0; height < OUT_HEIGHT; height = height + STRIDE_H) begin : height_gen
+        for (width = 0; width < OUT_WIDTH; width = width + 1) begin : width_gen
+            for (height = 0; height < OUT_HEIGHT; height = height + 1) begin : height_gen
                 localparam out_idx = channels * OUT_HEIGHT * OUT_WIDTH + width * OUT_HEIGHT + height;
                 localparam patch_offset = out_idx * KERNEL_W * KERNEL_H;
 
