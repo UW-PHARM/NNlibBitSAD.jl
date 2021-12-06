@@ -1,10 +1,10 @@
 [verilog-nnlib]
-git-tree-sha1 = "0aab92f468b09a4958d5cbcde9eaea851743a5ef"
+git-tree-sha1 = "5d7b3443c1022504bc265495ff6a90ff5a8ad29c"
 lazy = true
 
     [[verilog-nnlib.download]]
-    sha256 = "a2b1633af9c56324acc2f9a5bf8ad5bc408d2926df9561d683abfb1901eff467"
+    sha256 = "98095406b9f90a527027f2c917950f3014dc80eea8038cdba0ee967ee7c925a6"
     url = "https://github.com/UW-PHARM/NNlibBitSAD.jl/raw/v0.1.0/verilog-nnlib.tar.gz"
     [[verilog-nnlib.download]]
-    sha256 = "a2b1633af9c56324acc2f9a5bf8ad5bc408d2926df9561d683abfb1901eff467"
+    sha256 = "98095406b9f90a527027f2c917950f3014dc80eea8038cdba0ee967ee7c925a6"
     url = "https://github.com/UW-PHARM/NNlibBitSAD.jl/raw/main/verilog-nnlib.tar.gz"
