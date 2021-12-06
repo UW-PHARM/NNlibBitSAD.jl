@@ -3,7 +3,7 @@ using Pkg.TOML
 
 # This is the path to the Artifacts.toml we will manipulate
 artifact_toml = joinpath(@__DIR__, "Artifacts.toml")
-verilog_lib = joinpath(@__DIR__, "verilog-stdlib/")
+verilog_lib = joinpath(@__DIR__, "verilog-nnlib/")
 project_toml = TOML.parsefile(joinpath(@__DIR__, "Project.toml"))
 version = project_toml["version"]
 
