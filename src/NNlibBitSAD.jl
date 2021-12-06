@@ -16,4 +16,9 @@ include("upsampling.jl")
 
 tosbitstream(f) = fmap(x -> SBitstream.(x), f; exclude = x -> x isa AbstractArray)
 
+function download_lib(dir = pwd())
+    lib = artifact"verilog-nnlib"
+    cp(lib, joinpath(dir, "verilog-nnlib"))
+end
+
 end # module
