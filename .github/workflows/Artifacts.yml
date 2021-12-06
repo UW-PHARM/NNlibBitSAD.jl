@@ -2,7 +2,7 @@ name: Artifacts
 
 on:
   push:
-    branches: ['master']
+    branches: ['main']
 
 jobs:
   artifacts:
@@ -16,7 +16,7 @@ jobs:
       - uses: technote-space/get-diff-action@v5
         with:
           PATTERNS: |
-            verilog-nnlib/**/*.v
+            verilog-nnlib/*.v
       - name: Install dependencies
         run: |
           julia --color=yes --project=. -e 'using Pkg; Pkg.instantiate()'

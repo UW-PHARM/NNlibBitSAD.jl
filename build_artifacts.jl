@@ -17,7 +17,7 @@ tar_hash = archive_artifact(dir_hash, joinpath(@__DIR__, "verilog-nnlib.tar.gz")
 
 # Now bind that hash within our `Artifacts.toml`
 base_url = "https://github.com/UW-PHARM/NNlibBitSAD.jl/raw"
-dev_url = "$base_url/master/verilog-nnlib.tar.gz"
+dev_url = "$base_url/main/verilog-nnlib.tar.gz"
 release_url = "$base_url/v$version/verilog-nnlib.tar.gz"
 bind_artifact!(artifact_toml, "verilog-nnlib", dir_hash;
                download_info = [(release_url, tar_hash), (dev_url, tar_hash)],
