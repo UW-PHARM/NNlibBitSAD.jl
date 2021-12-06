@@ -1,12 +1,13 @@
 module NNlibBitSAD
 
 using BitSAD
-using BitSAD: SBitstreamLike, Net, Netlist
+using BitSAD: @nosim, SBitstreamLike, Net, Netlist
 using NNlib
 using Functors: fmap
 
 export tosbitstream
 
+include("helpers.jl")
 include("utils.jl")
 include("activations.jl")
 include("conv.jl")

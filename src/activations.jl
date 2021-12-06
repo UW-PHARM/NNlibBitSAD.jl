@@ -31,8 +31,8 @@ function (handler::ReluHandler)(buffer, netlist, inputs, outputs)
         genvar relu$(broadcast)$(handler.id)_i;
 
         generate
-        for (relu$(broadcast)$(handler.id)_i = 0; relu$(broadcast)$(handler.id)_i < $num_elements; relu$(broadcast)$(handler.id)_i = relu$(broadcast)$(handler.id)_i + 1) begin
-            relu relu$(broadcast)$(handler.id) (
+        for (relu$(broadcast)$(handler.id)_i = 0; relu$(broadcast)$(handler.id)_i < $num_elements; relu$(broadcast)$(handler.id)_i = relu$(broadcast)$(handler.id)_i + 1) begin : relu$(broadcast)$(handler.id)_gen
+            stoch_signed_relu relu$(broadcast)$(handler.id) (
                     .CLK(CLK),
                     .nRST(nRST),
                     .in_p($(BitSAD.name(inputs[1]))_p[relu$(broadcast)$(handler.id)_i]),

@@ -2,11 +2,12 @@ for f in (:output_size,
           :channels_in,
           :channels_out,
           :channel_multiplier)
-    @eval BitSAD.@nosim NNlib.$(f)(cdims::NNlib.ConvDims)
+    @eval @nosim NNlib.$(f)(cdims::NNlib.ConvDims)
 end
 
-BitSAD.@nosim NNlib.DenseConvDims(x::AbstractArray{<:SBitstream}, w::AbstractArray{<:SBitstream}) kwargs=true
-BitSAD.@nosim NNlib.DenseConvDims(cdims::ConvDims)
+@nosim NNlib.DenseConvDims(x::AbstractArray{<:SBitstream}, w::AbstractArray{<:SBitstream}) kwargs=true
+@nosim NNlib.DenseConvDims(cdims::ConvDims)
+@nosim NNlib.PoolDims(x::AbstractArray{<:SBitstream}, k) kwargs=true
 
 # prevent aliasing with im2col! and SBitstream
 function NNlib.im2col!(col::AbstractArray{SBitstream{T}, 2},
@@ -57,7 +58,7 @@ function (handler::Im2ColHandler)(buffer, netlist, inputs, outputs)
     write(buffer, """
         $(BitSAD.stdcomment)
         // BEGIN im2col$(handler.id)
-        im2col #(
+        stoch_signed_im2col #(
                 .IM_HEIGHT($IM_H),
                 .IM_WIDTH($IM_W),
                 .CHANNELS($CHANNELS),
