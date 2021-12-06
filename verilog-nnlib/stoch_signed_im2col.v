@@ -46,7 +46,8 @@ for (input_row = 0; input_row < IM_PAD_H-KERNEL_H+STRIDE_H; input_row = input_ro
               (input_idx % IM_PAD_W) >= (IM_WIDTH + PAD_W) ) begin
             assign col_p[output_col + output_row*COL_WIDTH] = 1'h0;
             assign col_m[output_col + output_row*COL_WIDTH] = 1'h0;
-          end else begin
+          end
+          else begin
             assign col_p[output_col + output_row*COL_WIDTH] = im_p[input_idx - PAD_H * IM_PAD_W - PAD_W - (input_row+kernel_row-PAD_H)*PAD_W*2 + channel*IM_HEIGHT*IM_WIDTH];
             assign col_m[output_col + output_row*COL_WIDTH] = im_m[input_idx - PAD_H * IM_PAD_W - PAD_W - (input_row+kernel_row-PAD_H)*PAD_W*2 + channel*IM_HEIGHT*IM_WIDTH];
           end

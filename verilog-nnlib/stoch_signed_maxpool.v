@@ -35,16 +35,17 @@ generate
                 localparam col = pad_width / STRIDE_W;
                 localparam base = (col * OUT_HEIGHT + row) * KERNEL_H * KERNEL_W;
                 for (k_width = 0; k_width < KERNEL_W; k_width = k_width + 1) begin : pad_k_width_gen
-                    for (k_height = 0; k_height < KERNEL_H; k_height + k_height + 1) begin : pad_k_height_gen
+                    for (k_height = 0; k_height < KERNEL_H; k_height = k_height + 1) begin : pad_k_height_gen
                         localparam out_idx = base + k_width * KERNEL_H + k_height;
                         localparam in_idx = (im_channels * IM_HEIGHT * IM_WIDTH) *
                                             (im_width * IM_HEIGHT) + im_height;
 
-                        if (im_width >= 0) && (im_width < IM_WIDTH) &&
-                           (im_height >= 0) && (im_height < IM_HEIGHT) begin
+                        if ((im_width >= 0) && (im_width < IM_WIDTH) &&
+                           (im_height >= 0) && (im_height < IM_HEIGHT)) begin
                             assign x_patch_p[out_idx] = x_p[in_idx];
                             assign x_patch_m[out_idx] = x_m[in_idx];
-                        end else begin
+                        end
+                        else begin
                             assign x_patch_p[out_idx] = 1'b0;
                             assign x_patch_m[out_idx] = 1'b0;
                         end
@@ -70,7 +71,7 @@ generate
                         .CLK(CLK),
                         .nRST(nRST),
                         .as_p(x_patch_p[(width * IM_PAD_H) + height +: (KERNEL_H * KERNEL_W)]),
-                        .as_m(x_patch_m[(width * IM_PAD_H) + height +: (KERNEL_H * KERNEL_W)])
+                        .as_m(x_patch_m[(width * IM_PAD_H) + height +: (KERNEL_H * KERNEL_W)]),
                         .y_p(y_p[out_width * OUT_HEIGHT + out_height]),
                         .y_m(y_m[out_width * OUT_HEIGHT + out_height])
                     );
