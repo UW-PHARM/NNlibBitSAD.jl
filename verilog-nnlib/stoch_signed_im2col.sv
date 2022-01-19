@@ -31,9 +31,9 @@ always @(im_p, im_m) begin
       for (channel = 0; channel < CHANNELS; channel = channel + 1) begin
         for (kernel_row = 0; kernel_row < KERNEL_H; kernel_row = kernel_row + 1) begin
           for (kernel_col = 0; kernel_col < KERNEL_W; kernel_col = kernel_col + 1) begin
-            localparam integer output_row = (input_col + PAD_W) / STRIDE_W +
-                                            ((input_row + PAD_H) / STRIDE_H) * ((IM_PAD_W - KERNEL_W) / STRIDE_W + 1);
-            localparam integer output_col = kernel_col + kernel_row * KERNEL_W + channel * KERNEL_H * KERNEL_W;
+            integer output_row = (input_col + PAD_W) / STRIDE_W +
+                                 ((input_row + PAD_H) / STRIDE_H) * ((IM_PAD_W - KERNEL_W) / STRIDE_W + 1);
+            integer output_col = kernel_col + kernel_row * KERNEL_W + channel * KERNEL_H * KERNEL_W;
 
             if ((input_row + kernel_row >= 0) && (input_row + kernel_row < IM_HEIGHT) &&
                 (input_col + kernel_col >= 0) && (input_col + kernel_col < IM_WIDTH)) begin

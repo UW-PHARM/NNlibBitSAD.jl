@@ -10,8 +10,7 @@ module stoch_signed_maxpool #(
   parameter PAD_W = 2,
   parameter STRIDE_H = 1,
   parameter STRIDE_W = 1,
-
-  localparam IM_PAD_W = IM_WIDTH + PAD_W * 2,
+ localparam IM_PAD_W = IM_WIDTH + PAD_W * 2,
   localparam IM_PAD_H = IM_HEIGHT + PAD_H * 2,
   // take ceil https://stackoverflow.com/questions/52372409/using-ceil-to-define-a-parameter-in-systemverilog-in-quartus-prime
   localparam OUT_HEIGHT = ((IM_PAD_H - KERNEL_H + STRIDE_H - 1) / STRIDE_H + 1),
@@ -34,8 +33,8 @@ always @(x_p, x_m) begin
       for (im_width = -PAD_W; im_width < IM_WIDTH + PAD_W - KERNEL_W; im_width = im_width + STRIDE_W) begin
         for (k_height = 0; k_height < KERNEL_H; k_height = k_height + 1) begin
           for (k_width = 0; k_width < KERNEL_W; k_width = k_width + 1) begin
-            localparam integer out_height = (im_height + PAD_H) / STRIDE_H;
-            localparam integer out_width = (im_width + PAD_W) / STRIDE_W;
+            integer out_height = (im_height + PAD_H) / STRIDE_H;
+            integer out_width = (im_width + PAD_W) / STRIDE_W;
             if ((im_height + k_height >= 0) && (im_height + k_height < IM_HEIGHT) &&
                 (im_width + k_width >= 0) && (im_width + k_width < IM_WIDHT)) begin
               x_patch_p[out_height][out_width][im_channels][k_height][k_width] <=
