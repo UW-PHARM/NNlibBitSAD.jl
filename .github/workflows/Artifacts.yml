@@ -17,6 +17,7 @@ jobs:
         with:
           PATTERNS: |
             verilog-nnlib/*.v
+            verilog-nnlib/*.sv
       - name: Install dependencies
         run: |
           julia --color=yes --project=. -e 'using Pkg; Pkg.instantiate()'
