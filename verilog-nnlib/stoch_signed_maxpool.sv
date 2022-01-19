@@ -1,15 +1,15 @@
 `timescale 1ns / 1ps
 
 module stoch_signed_maxpool #(
-  parameter IM_HEIGHT = 12;
-  parameter IM_WIDTH = 12;
-  parameter CHANNELS = 3;
-  parameter KERNEL_H = 3;
-  parameter KERNEL_W = 3;
-  parameter PAD_H = 2;
-  parameter PAD_W = 2;
-  parameter STRIDE_H = 1;
-  parameter STRIDE_W = 1;
+  parameter IM_HEIGHT = 12,
+  parameter IM_WIDTH = 12,
+  parameter CHANNELS = 3,
+  parameter KERNEL_H = 3,
+  parameter KERNEL_W = 3,
+  parameter PAD_H = 2,
+  parameter PAD_W = 2,
+  parameter STRIDE_H = 1,
+  parameter STRIDE_W = 1
 ) (
   input logic CLK,
   input logic nRST,
