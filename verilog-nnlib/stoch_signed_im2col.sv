@@ -9,7 +9,12 @@ module stoch_signed_im2col #(
   parameter PAD_H = 2,
   parameter PAD_W = 2,
   parameter STRIDE_H = 1,
-  parameter STRIDE_W = 1
+  parameter STRIDE_W = 1,
+
+  localparam IM_PAD_W = IM_WIDTH + PAD_W * 2,
+  localparam IM_PAD_H = IM_HEIGHT + PAD_H * 2,
+  localparam COL_HEIGHT = ((IM_PAD_H-KERNEL_H)/STRIDE_H +1)*((IM_PAD_W-KERNEL_W)/STRIDE_W +1),
+  localparam COL_WIDTH = KERNEL_H*KERNEL_W*CHANNELS
 ) (
   input logic CLK,
   input logic nRST,
@@ -18,12 +23,6 @@ module stoch_signed_im2col #(
   output logic [(COL_HEIGHT-1):0][(COL_WIDTH-1):0] col_p,
   output logic [(COL_HEIGHT-1):0][(COL_WIDTH-1):0] col_m
 );
-
-// parameters
-localparam IM_PAD_W = IM_WIDTH + PAD_W * 2;
-localparam IM_PAD_H = IM_HEIGHT + PAD_H * 2;
-localparam COL_HEIGHT = ((IM_PAD_H-KERNEL_H)/STRIDE_H +1)*((IM_PAD_W-KERNEL_W)/STRIDE_W +1);
-localparam COL_WIDTH = KERNEL_H*KERNEL_W*CHANNELS;
 
 integer channel, kernel_row, kernel_col, input_row, input_col;
 always @(im_p, im_m) begin

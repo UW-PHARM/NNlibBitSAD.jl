@@ -9,7 +9,13 @@ module stoch_signed_maxpool #(
   parameter PAD_H = 2,
   parameter PAD_W = 2,
   parameter STRIDE_H = 1,
-  parameter STRIDE_W = 1
+  parameter STRIDE_W = 1,
+
+  localparam IM_PAD_W = IM_WIDTH + PAD_W * 2,
+  localparam IM_PAD_H = IM_HEIGHT + PAD_H * 2,
+  // take ceil https://stackoverflow.com/questions/52372409/using-ceil-to-define-a-parameter-in-systemverilog-in-quartus-prime
+  localparam OUT_HEIGHT = ((IM_PAD_H - KERNEL_H + STRIDE_H - 1) / STRIDE_H + 1),
+  localparam OUT_WIDTH = ((IM_PAD_W - KERNEL_W + STRIDE_W - 1) / STRIDE_W + 1)
 ) (
   input logic CLK,
   input logic nRST,
@@ -18,12 +24,6 @@ module stoch_signed_maxpool #(
   output logic [(OUT_HEIGHT-1):0][(OUT_WIDTH-1):0][(CHANNELS-1):0] y_p,
   output logic [(OUT_HEIGHT-1):0][(OUT_WIDTH-1):0][(CHANNELS-1):0] y_m
 );
-
-localparam IM_PAD_W = IM_WIDTH + PAD_W * 2;
-localparam IM_PAD_H = IM_HEIGHT + PAD_H * 2;
-// take ceil https://stackoverflow.com/questions/52372409/using-ceil-to-define-a-parameter-in-systemverilog-in-quartus-prime
-localparam OUT_HEIGHT = ((IM_PAD_H - KERNEL_H + STRIDE_H - 1) / STRIDE_H + 1);
-localparam OUT_WIDTH = ((IM_PAD_W - KERNEL_W + STRIDE_W - 1) / STRIDE_W + 1);
 
 logic [(OUT_HEIGHT-1):0][(OUT_WIDTH-1:0)][(CHANNELS-1):0][(KERNEL_H-1):0][(KERNEL_W-1):0] x_patch_p, x_patch_m;
 
