@@ -37,12 +37,12 @@ always @(im_p, im_m) begin
 
             if ((input_row + kernel_row >= 0) && (input_row + kernel_row < IM_HEIGHT) &&
                 (input_col + kernel_col >= 0) && (input_col + kernel_col < IM_WIDTH)) begin
-              col_p[output_row][output_col] <= im_p[input_row + kernel_row][input_col + kernel_col][channel];
-              col_m[output_row][output_col] <= im_m[input_row + kernel_row][input_col + kernel_col][channel];
+              col_p[output_row][output_col] = im_p[input_row + kernel_row][input_col + kernel_col][channel];
+              col_m[output_row][output_col] = im_m[input_row + kernel_row][input_col + kernel_col][channel];
             end
             else begin
-              col_p[output_row][output_col] <= 1'b0;
-              col_m[output_row][output_col] <= 1'b0;
+              col_p[output_row][output_col] = 1'b0;
+              col_m[output_row][output_col] = 1'b0;
             end
           end
         end

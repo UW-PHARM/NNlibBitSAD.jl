@@ -37,14 +37,14 @@ always @(x_p, x_m) begin
             integer out_width = (im_width + PAD_W) / STRIDE_W;
             if ((im_height + k_height >= 0) && (im_height + k_height < IM_HEIGHT) &&
                 (im_width + k_width >= 0) && (im_width + k_width < IM_WIDHT)) begin
-              x_patch_p[out_height][out_width][im_channels][k_height][k_width] <=
+              x_patch_p[out_height][out_width][im_channels][k_height][k_width] =
                 x_p[im_height + k_height][im_width + k_width][channels];
-              x_patch_m[out_height][out_width][im_channels][k_height][k_width] <=
+              x_patch_m[out_height][out_width][im_channels][k_height][k_width] =
                 x_m[im_height + k_height][im_width + k_width][channels];
             end
             else begin
-              x_patch_p[out_height][out_width][im_channels][k_height][k_width] <= 1'b0;
-              x_patch_m[out_height][out_width][im_channels][k_height][k_width] <= 1'b0;
+              x_patch_p[out_height][out_width][im_channels][k_height][k_width] = 1'b0;
+              x_patch_m[out_height][out_width][im_channels][k_height][k_width] = 1'b0;
             end
           end
         end
