@@ -41,9 +41,7 @@ BitSAD.gethandler(broadcasted, ::Type{typeof(im2col)}, ::Type{<:AbstractArray{<:
 BitSAD.init_state(::SIm2ColHandler) = (id = 0,)
 
 function (handler::SIm2ColHandler)(buffer, netlist, state, inputs, outputs)
-    # set input/output at as signed and delete cdims from netlist
-    BitSAD.setsigned!(netlist, inputs[1], true)
-    BitSAD.setsigned!(netlist, outputs[1], true)
+    # delete cdims from netlist
     delete!(netlist, inputs[2])
 
     # extract parameters
@@ -55,7 +53,6 @@ function (handler::SIm2ColHandler)(buffer, netlist, state, inputs, outputs)
     KERNEL_H, KERNEL_W = NNlib.kernel_size(cdims)
 
     write(buffer, """
-        $(BitSAD.stdcomment)
         // BEGIN im2col$(state.id)
         stoch_signed_im2col #(
                 .IM_HEIGHT($IM_H),

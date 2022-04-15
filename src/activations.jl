@@ -15,14 +15,8 @@ BitSAD.gethandler(::Bool, ::Type{typeof(NNlib.relu)}, ::Type{<:SBitstreamLike}) 
 BitSAD.init_state(::SReluHandler) = (id = 0,)
 
 function (handler::SReluHandler)(buffer, netlist, state, inputs, outputs)
-    # set input/output at as signed
-    BitSAD.setsigned!(netlist, inputs[1], true)
-    BitSAD.setsigned!(netlist, outputs[1], true)
-
     num_elements = join(BitSAD.netsize(inputs[1]), "*")
-
     write(buffer, """
-        $(BitSAD.stdcomment)
         // BEGIN relu$(state.id)
         """)
     BitSAD.write_bcast_instantiation(buffer, "relu$(state.id)", BitSAD.netsize(outputs[1]), """

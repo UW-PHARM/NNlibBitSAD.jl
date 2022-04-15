@@ -13,9 +13,7 @@ BitSAD.gethandler(broadcasted,
 BitSAD.init_state(::SUpsampleNearestHandler) = (id = 0,)
 
 function (handler::SUpsampleNearestHandler)(buffer, netlist, state, inputs, outputs)
-    # set input/output at as signed and delete cdims from netlist
-    BitSAD.setsigned!(netlist, inputs[1], true)
-    BitSAD.setsigned!(netlist, outputs[1], true)
+    # delete cdims from netlist
     delete!(netlist, inputs[2])
 
     # extract scaling and dimensions
