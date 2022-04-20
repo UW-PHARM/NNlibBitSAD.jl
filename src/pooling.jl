@@ -1,5 +1,8 @@
 ## Max pooling
 
+NNlib.maxpool(x::AbstractArray{<:SBitstream}, pdims::NNlib.PoolDims) =
+    SBitstream.(NNlib.maxpool(float.(x), pdims))
+
 struct MaxPooler{T<:KernelPatch}
     kernels::Vector{T}
 end
@@ -77,6 +80,9 @@ function (handler::SMaxPoolHandler)(buffer, netlist, state, inputs, outputs)
 end
 
 ## Mean pooling
+
+NNlib.meanpool(x::AbstractArray{<:SBitstream}, pdims::NNlib.PoolDims) =
+    SBitstream.(NNlib.meanpool(float.(x), pdims))
 
 struct MeanPooler{T<:KernelPatch}
     kernels::Vector{T}
