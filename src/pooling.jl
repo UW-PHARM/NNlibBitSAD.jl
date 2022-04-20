@@ -1,3 +1,5 @@
+## Max pooling
+
 struct MaxPooler{T<:KernelPatch}
     kernels::Vector{T}
 end
@@ -23,8 +25,8 @@ end
 BitSAD.is_trace_primitive(::Type{typeof(NNlib.maxpool)},
                           ::Type{<:AbstractArray{<:SBitstream}},
                           ::Type{<:NNlib.PoolDims}) = true
-BitSAD.getsimulator(::typeof(NNlib.maxpool), x::AbstractArray{<:SBitstream}, pdims::NNlib.PoolDims) =
-    MaxPooler(x, pdims)
+BitSAD.getsimulator(::typeof(NNlib.maxpool), x::AbstractArray{<:SBitstream},
+                    pdims::NNlib.PoolDims) = MaxPooler(x, pdims)
 
 struct SMaxPoolHandler end
 
@@ -32,7 +34,8 @@ BitSAD.gethandler(broadcasted,
                   ::Type{typeof(NNlib.maxpool)},
                   ::Type{<:AbstractArray{<:SBitstream}},
                   ::Type{<:NNlib.PoolDims}) =
-    broadcasted ? error("Cannot generate hardware for broadcasted maxpool.") : SMaxPoolHandler()
+    broadcasted ? error("Cannot generate hardware for broadcasted maxpool.") :
+                  SMaxPoolHandler()
 BitSAD.init_state(::SMaxPoolHandler) = (id = 0,)
 
 function (handler::SMaxPoolHandler)(buffer, netlist, state, inputs, outputs)
@@ -72,3 +75,33 @@ function (handler::SMaxPoolHandler)(buffer, netlist, state, inputs, outputs)
 
     return buffer, (id = state.id + 1,)
 end
+
+## Mean pooling
+
+struct MeanPooler{T<:KernelPatch}
+    kernels::Vector{T}
+end
+function MeanPooler(x::AbstractArray{<:SBitstream, 4}, pdims::PoolDims)
+    patch_indices = patches(x, pdims)
+    kernels = [KernelPatch(BitSAD.SSignedAverager{length(x[idx...])}(), idx)
+               for idx in patch_indices if length(x[idx...]) > 0]
+
+    MeanPooler(kernels)
+end
+
+function (op::MeanPooler)(x::AbstractArray{<:SBit, 4}, osize)
+    y = similar(x, osize)
+    for i in eachindex(y)
+        y[i] = op.kernels[i](x)
+    end
+
+    return y
+end
+(op::MeanPooler)(x::AbstractArray{<:SBit, 4}, pdims::PoolDims) =
+    op(x, (NNlib.output_size(pdims)..., size(x)[3:end]...))
+
+BitSAD.is_trace_primitive(::Type{typeof(NNlib.meanpool)},
+                          ::Type{<:AbstractArray{<:SBitstream}},
+                          ::Type{<:NNlib.PoolDims}) = true
+BitSAD.getsimulator(::typeof(NNlib.meanpool), x::AbstractArray{<:SBitstream},
+                    pdims::NNlib.PoolDims) = MeanPooler(x, pdims)

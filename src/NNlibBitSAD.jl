@@ -11,6 +11,7 @@ export tosbitstream
 include("helpers.jl")
 include("utils.jl")
 include("activations.jl")
+include("im2col.jl")
 include("conv.jl")
 include("pooling.jl")
 include("upsampling.jl")
