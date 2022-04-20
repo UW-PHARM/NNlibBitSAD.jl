@@ -12,7 +12,7 @@ LazyArtifacts = "4af54fe1-eca0-43a8-85a7-787d91b784e3"
 NNlib = "872c559c-99b0-510c-b3b7-b6c96a88d5cd"
 
 [compat]
-BitSAD = "0.1"
+BitSAD = "0.1, 0.2"
 Functors = "0.2.8"
 Ghost = "0.3"
 julia = "1.6"
