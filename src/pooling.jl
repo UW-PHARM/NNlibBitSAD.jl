@@ -1,22 +1,3 @@
-# Base.:(==)(x::SBitstream, y::SBitstream) = float(x) == float(y)
-# Base.:(/)(x::SBitstream, y::Int) = x÷y
-
-# function NNlib.meanpool(x::AbstractArray{xT,N},
-#                         pdims::PoolDims; kwargs...) where {xT<:SBitstream, N}
-#      y = similar(x, NNlib.output_size(pdims)..., NNlib.channels_out(pdims), size(x, N))
-#      fill!(y, xT(0))
-#      return NNlib.meanpool!(y, x, pdims; kwargs...)
-# end
-
-# BitSAD.is_trace_primitive(::Type{typeof(NNlib.meanpool)}, 
-#                           ::Type{<:AbstractArray{<:SBitstream,N}}, 
-#                           pdims) where {N} = true
-# BitSAD.getsimulator(::Type{typeof(NNlib.meanpool)}, 
-#                     ::Type{<:AbstractArray{<:SBitstream,N}}, 
-#                     pdims) where {N} = NNlib.meanpool
-
-# NNlib.maxpool(x::AbstractArray{<:SBitstream}, pdims::PoolDims) = SBitstream.(maxpool(float(x), pdims))
-
 struct MaxPooler{T<:KernelPatch}
     kernels::Vector{T}
 end
@@ -55,9 +36,7 @@ BitSAD.gethandler(broadcasted,
 BitSAD.init_state(::SMaxPoolHandler) = (id = 0,)
 
 function (handler::SMaxPoolHandler)(buffer, netlist, state, inputs, outputs)
-    # set input/output at as signed and delete pdims from netlist
-    BitSAD.setsigned!(netlist, inputs[1], true)
-    BitSAD.setsigned!(netlist, outputs[1], true)
+    # delete pdims from netlist
     delete!(netlist, inputs[2])
 
     # extract parameters
@@ -69,7 +48,6 @@ function (handler::SMaxPoolHandler)(buffer, netlist, state, inputs, outputs)
     KERNEL_H, KERNEL_W = NNlib.kernel_size(pdims)
 
     write(buffer, """
-        $(BitSAD.stdcomment)
         // BEGIN maxpool$(state.id)
         stoch_signed_maxpool #(
                 .IM_HEIGHT($IM_H),
