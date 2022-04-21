@@ -12,6 +12,9 @@ BitSAD.is_trace_primitive(::Type{typeof(Base.broadcasted)},
                           ::Type{typeof(NNlib.relu)},
                           ::Type{<:SBitstreamLike}) = true
 BitSAD.getsimulator(::typeof(NNlib.relu), ::SBitstream) = SReluer()
+BitSAD.getsimulator(::typeof(Base.broadcasted),
+                    ::typeof(NNlib.relu),
+                    x::SBitstreamLike) = getsimulator.(relu, x)
 
 struct SReluHandler end
 
