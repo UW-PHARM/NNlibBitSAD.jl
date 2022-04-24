@@ -89,16 +89,20 @@ struct MeanPooler{T<:KernelPatch}
 end
 function MeanPooler(x::AbstractArray{<:SBitstream, 4}, pdims::PoolDims)
     patch_indices = patches(x, pdims)
-    kernels = [KernelPatch(BitSAD.SSignedAverager{length(x[idx...])}(), idx)
-               for idx in patch_indices if length(x[idx...]) > 0]
+    kernels = [KernelPatch(BitSAD.SSignedAverager{length(x[idx..., 1])}(), idx)
+               for idx in patch_indices if length(x[idx..., 1]) > 0]
 
     MeanPooler(kernels)
 end
 
 function (op::MeanPooler)(x::AbstractArray{<:SBit, 4}, osize)
     y = similar(x, osize)
-    for i in eachindex(y)
-        y[i] = op.kernels[i](x)
+    for n in 1:size(x, 4)
+        _x = view(x, :, :, :, n)
+        _y = view(y, :, :, :, n)
+        for i in eachindex(_y)
+            _y[i] = op.kernels[i](_x)
+        end
     end
 
     return y

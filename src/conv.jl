@@ -7,7 +7,7 @@ function _conv(x, w, cdims)
     wgemm = reshape(w, :, size(w, 4))
     ygemm = xgemm * wgemm
     osize = NNlib.output_size(cdims)
-    y = reshape(ygemm, osize[1], osize[2], NNlib.channels_out(cdims), size(x, 4))
+    y = col2im(ygemm, osize[1], osize[2], NNlib.channels_out(cdims), size(x, 4))
 
     return y
 end
@@ -15,18 +15,18 @@ end
 function NNlib.conv(x::AbstractArray{<:SBitstream, 4},
                     w::AbstractArray{<:SBitstream, 4},
                     cdims::C) where {C<:ConvDims}
-    C_in = NNlib.channels_in(cdims) ÷ NNlib.groupcount(cdims)
-    C_out = NNlib.channels_out(cdims) ÷ NNlib.groupcount(cdims)
+    G = NNlib.groupcount(cdims)
+    C_in = NNlib.channels_in(cdims) ÷ G
+    C_out = NNlib.channels_out(cdims) ÷ G
     _cdims = NNlib.basetype(C)(cdims, G = 1, C_in = C_in, C_out = C_out)
 
-    x_cs = Iterators.partition(1:size(x, 3), C_in)
-    w_cs = Iterators.partition(1:size(w, 4), C_out)
-
     y = zeros(eltype(x), NNlib.output_size(cdims)..., NNlib.channels_out(cdims), size(x, 4))
-    for (xc, wc) in zip(x_cs, w_cs)
-        x_i = @view x[ntuple(i -> i == 3 ? xc : Colon(), 4)...]
-        w_i = @view w[ntuple(i -> i == 4 ? wc : Colon(), 4)...]
-        y[ntuple(i -> i == 3 ? wc : Colon(), 4)...] = _conv(x_i, w_i, _cdims)
+    for group in 1:G
+        xc = ((group - 1) * C_in + 1):(group * C_in)
+        wc = ((group - 1) * C_out + 1):(group * C_out)
+        x_i = view(x, :, :, xc, :)
+        w_i = view(w, :, :, :, wc)
+        y[:, :, wc, :] = _conv(x_i, w_i, _cdims)
     end
 
     return y

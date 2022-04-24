@@ -5,6 +5,7 @@ using BitSAD: @nosim, SBitstreamLike, Net, Netlist
 using NNlib
 using Functors: fmap
 using Artifacts, LazyArtifacts
+using Base.Threads: @threads
 
 export tosbitstream
 

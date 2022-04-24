@@ -12,8 +12,15 @@ end
 function im2col(x, cdims)
     cdims_expanded = NNlib.insert_singleton_spatial_dimension(cdims)
     x_expanded = NNlib.insert_singleton_spatial_dimension(x)
-    y = similar(x_expanded, NNlib.im2col_dims(cdims_expanded)[1:2])
-    NNlib.im2col!(y, x_expanded[:, :, :, :, 1], cdims_expanded)
+    bs = size(x, 4)
+    npatches, ps = NNlib.im2col_dims(cdims_expanded)[1:2]
+    y = similar(x_expanded, npatches * bs, ps)
+    @threads for i in 1:bs
+        idx = ((i - 1) * npatches + 1):(i * npatches)
+        y_i = @view y[idx, :]
+        x_i = @view x_expanded[:, :, :, :, i]
+        NNlib.im2col!(y_i, x_i, cdims_expanded)
+    end
 
     return y
 end
@@ -66,3 +73,19 @@ function (handler::SIm2ColHandler)(buffer, netlist, state, inputs, outputs)
 
     return buffer, (id = state.id + 1,)
 end
+
+function col2im(y, h, w, c, b)
+    yim = similar(y, h, w, c, b)
+    npatches = size(y, 1) ÷ b
+    @threads for i in 1:b
+        idx = ((i - 1) * npatches + 1):(i * npatches)
+        yim[:, :, :, i] = reshape(y[idx, :], h, w, c, 1)
+    end
+
+    return yim
+end
+
+BitSAD.is_trace_primitive(::Type{typeof(col2im)},
+                          ::Type{<:AbstractArray{<:SBitstream}},
+                          h, w, c, b) = true
+BitSAD.getsimulator(::typeof(col2im), y, h, w, c, b) = col2im
